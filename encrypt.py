@@ -1,6 +1,6 @@
 #encrypt.py
 #Nitin Shyamkumar (https://github.com/nitinshyamk)
-#12.10.13
+#12.11.13
 
 """This module executes the one time pad cipher on any string 
 (provided that ord(chr) for any chr in the string is in the range 0<=255).
@@ -11,6 +11,7 @@ The key can be changed as desired."""
 #feel free to change the key - though make sure each item is an int
 # and that each item has 
 KEY = [0,1,0,1,1,0,1,1]
+
 #keyspace is defined as the the universe of all n-bit strings.
 #KEYSPACE_N is the value of n. Leave KEYSPACE_N unchanged unless
 # you understand the cipher
@@ -21,8 +22,10 @@ def encrypt_string(s, key = KEY):
     assert(type(s)==str)
     char_list = _convert_char_2_int(s)
     ciphertext= []
-    for i in char_list:
-        ciphertext.append(_xor(_convert_base10_binary(i),key))
+    key = _lcg(length = 8*len(s))
+    for i in range(len(char_list)):
+        key_cipher = key[8*i:8*(i+1)]
+        ciphertext.append(_xor(_convert_base10_binary(char_list[i]),key_cipher))
         #ciphertext is a 2d list of ciphered 8 bit strings
 
     for i in ciphertext:
@@ -70,10 +73,17 @@ def _xor(bin, key = KEY):
     """xor s the plaintext with the key to produce the ciphertext
     returns the ciphertext as a list of ints"""
     assert(type(bin)==list), "improper type"
-    assert len(bin)==len(key), 'length mismatch'
+    assert len(bin)<=len(key), 'length mismatch'
     ciphertext = []
     for i in range(len(bin)):
         ciphertext.append((bin[i]+key[i])%2)
     return ciphertext
 
-
+def _lcg(a = 673, c = 9235, m = 10000, length = 400, seed = KEY):
+    """a linear congruential pseudo random generator. NOT intended to be a secure 
+    PRG, will be changed in successive edits."""
+    assert(a>0 and a<m and c>0 and c<m and length>0 and type(seed)==list and len(seed)>0)
+    random_list = seed[:]
+    for i in range(1,length+1):
+        random_list.append(((a*random_list[i-1]+c)%m)%2)
+    return random_list
